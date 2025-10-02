@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Quiz Cambio Climático y ODS</title>
+<style>
+  body{
+    margin:0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(180deg, #dff7f9 0%, #f9fbe7 100%);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:100vh;
+  }
+  .container{
+    width:900px;
+    max-width:100%;
+    background:#fff;
+    border-radius:14px;
+    box-shadow: 0 10px 30px rgba(10,30,60,0.12);
+    padding:22px;
+  }
+  .question { font-weight:bold; margin:10px 0; font-size:18px;}
+  .option { background:#fff; border:2px solid #ccc; padding:10px; margin:8px 0; cursor:pointer; border-radius:8px;}
+  .option:hover { background:#f0faff; }
+  .correct { background:#c8f7c5 !important; border-color:#31a24c !important; }
+  .wrong { background:#f7c5c5 !important; border-color:#e83c3c !important; }
+  #timer { font-size:20px; font-weight:bold; color:#2b8cff; }
+  #progressBar { height:12px; background:#2b8cff; width:100%; transition:width 1s linear; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Quiz: Cambio Climático y ODS</h1>
+  <div id="quiz"></div>
+  <div id="timerArea" style="margin:12px 0;">
+    Tiempo restante: <span id="timer">15</span> segundos
+    <div style="background:#eee;border-radius:6px;overflow:hidden;margin-top:4px;">
+      <div id="progressBar"></div>
+    </div>
+  </div>
+  <div id="result"></div>
+  <button id="startBtn">Iniciar Quiz</button>
+</div>
+
+<script>
+const questions = [
+  // Cambio Climático
+  {q:"¿Qué es el cambio climático?", a:"Un cambio a largo plazo en el clima de la Tierra", opts:["Un cambio a largo plazo en el clima de la Tierra","Un día con lluvia","Una estación normal","Un pronóstico del tiempo"]},
+  {q:"¿Cuál es una consecuencia del cambio climático?", a:"Aumento del nivel del mar", opts:["Aumento del nivel del mar","Más fiestas","Más deportes","Más vacaciones"]},
+  {q:"¿Qué gas causa principalmente el cambio climático?", a:"Dióxido de carbono (CO₂)", opts:["Dióxido de carbono (CO₂)","Oxígeno","Helio","Agua"]},
+  {q:"Una acción para reducir el cambio climático es:", a:"Usar energías renovables", opts:["Usar energías renovables","Encender más autos a gasolina","Quemar más carbón","Talar bosques"]},
+  {q:"¿Qué son los gases de efecto invernadero?", a:"Gases que atrapan el calor en la atmósfera", opts:["Gases que atrapan el calor en la atmósfera","Gases para inflar globos","Gases sin importancia","Gases que enfrían la Tierra"]},
+  
+  // ODS 6
+  {q:"¿Qué busca principalmente el ODS 6?", a:"Garantizar agua limpia y saneamiento para todos", opts:["Garantizar agua limpia y saneamiento para todos","Producir más autos","Construir aeropuertos","Hacer más carreteras"]},
+  {q:"¿Qué es 'saneamiento'?", a:"Servicios para manejar aguas residuales y mantener higiene", opts:["Servicios para manejar aguas residuales y mantener higiene","Vender agua embotellada","Pintar casas","Lavar autos"]},
+  {q:"Una acción para cuidar el agua es:", a:"Cerrar el grifo al cepillarse los dientes", opts:["Cerrar el grifo al cepillarse los dientes","Dejar el grifo abierto","Contaminar ríos","Usar agua sin control"]},
+  {q:"¿Por qué es importante el acceso al agua limpia?", a:"Porque previene enfermedades y mejora la salud", opts:["Porque previene enfermedades y mejora la salud","Porque es bonita","Porque es azul","Porque es cara"]},
+
+  // ODS 13 (solo 1)
+  {q:"¿Qué busca el ODS 13?", a:"Acción urgente contra el cambio climático", opts:["Acción urgente contra el cambio climático","Abrir más zoológicos","Hacer más parques de diversiones","Vender autos"]}
+];
+
+let current=0, score=0, timer, timeLeft=15;
+const quiz=document.getElementById("quiz"), result=document.getElementById("result");
+const timerEl=document.getElementById("timer"), progressBar=document.getElementById("progressBar");
+const startBtn=document.getElementById("startBtn");
+
+function shuffle(array){ for(let i=array.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [array[i],array[j]]=[array[j],array[i]]; } }
+
+function showQuestion(){
+  if(current>=questions.length){
+    quiz.innerHTML="";
+    result.innerHTML="<h3>Tu puntuación: "+score+"/"+questions.length+"</h3>";
+    clearInterval(timer);
+    return;
+  }
+  let q=questions[current];
+  quiz.innerHTML="<div class=question>"+q.q+"</div>";
+  shuffle(q.opts);
+  q.opts.forEach(opt=>{
+    let btn=document.createElement("div");
+    btn.className="option";
+    btn.textContent=opt;
+    btn.onclick=()=>selectAnswer(btn,opt,q.a);
+    quiz.appendChild(btn);
+  });
+  timeLeft=15;
+  timerEl.textContent=timeLeft;
+  progressBar.style.width="100%";
+  clearInterval(timer);
+  timer=setInterval(countDown,1000);
+}
+
+function countDown(){
+  timeLeft--;
+  timerEl.textContent=timeLeft;
+  progressBar.style.width=(timeLeft/15*100)+"%";
+  if(timeLeft<=0){
+    clearInterval(timer);
+    nextQuestion();
+  }
+}
+
+function selectAnswer(btn,opt,correct){
+  clearInterval(timer);
+  const all=document.querySelectorAll(".option");
+  all.forEach(x=>x.onclick=null);
+  if(opt===correct){ btn.classList.add("correct"); score++; new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg").play(); }
+  else { btn.classList.add("wrong"); all.forEach(x=>{ if(x.textContent===correct) x.classList.add("correct"); }); new Audio("https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg").play(); }
+  setTimeout(nextQuestion,1500);
+}
+
+function nextQuestion(){ current++; showQuestion(); }
+
+function startQuiz(){ current=0; score=0; shuffle(questions); showQuestion(); result.innerHTML=""; startBtn.style.display="none"; }
+
+startBtn.onclick=startQuiz;
+</script>
+</body>
+</html>
